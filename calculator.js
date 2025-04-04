@@ -39,6 +39,7 @@ function calculate() {
   const stampDutyCost = (STAMP_DUTY / 100) * totalCost + REGISTRATION;
   const maintenance = sba * maintenanceCharge * maintenanceYears * MONTHS_IN_YEAR;
   const actualCost = totalCost + stampDutyCost + maintenance + floorRiseCharges + extraCost + legalCharges;
+  const downPayment = (20 / 100) * actualCost;
 
   document.getElementById("tableSBA").innerText = Math.round(sba).toLocaleString("en-IN");
   document.getElementById("tableRate").innerText = Math.round(rate).toLocaleString("en-IN");
@@ -49,6 +50,7 @@ function calculate() {
   document.getElementById("floorRiseCharges").innerText = Math.round(floorRiseCharges).toLocaleString("en-IN");
   document.getElementById("stampDutyCost").innerText = Math.round(stampDutyCost).toLocaleString("en-IN");
   document.getElementById("actualCost").innerText = Math.round(actualCost).toLocaleString("en-IN");
+  document.getElementById("downPayment").innerText = Math.round(downPayment).toLocaleString("en-IN");
 }
 
 function printTable() {
