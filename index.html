@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Real Estate Cost Calculator</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="container py-4">
+  <div class="card shadow p-4">
+    <h2 class="text-center mb-4">Real Estate Cost Calculator</h2>
+
+    <div class="mb-3">
+      <label class="form-label">Project Name:</label>
+      <input type="text" class="form-control" id="projectName" oninput="updateProjectName()" />
+    </div>
+
+    <!-- Property Details -->
+    <div class="border p-3 mb-4">
+      <h5 class="mb-3">Property Details</h5>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">SBA Sq. ft:</label>
+          <input type="number" class="form-control" id="sba" value="1050" oninput="calculate()" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Rate per sq ft:</label>
+          <input type="number" class="form-control" id="rate" value="8500" oninput="calculate()" />
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Infra charges (BESCOM / BWWB):</label>
+        <input type="number" class="form-control" id="infraCharges" value="250000" oninput="calculate()" />
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Club House & Amenities:</label>
+          <input type="number" class="form-control" id="clubHouse" value="250000" oninput="calculate()" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Parking:</label>
+          <input type="number" class="form-control" id="parking" value="300000" oninput="calculate()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Costs -->
+    <div class="border p-3 mb-4">
+      <h5 class="mb-3">Additional Costs</h5>
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <label class="form-label">Corpus Fund:</label>
+          <input type="number" class="form-control" id="corpusFund" value="50000" oninput="calculate()" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Legal Charges:</label>
+          <input type="number" class="form-control" id="legalCharges" value="30000" oninput="calculate()" />
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Extra Cost:</label>
+          <input type="number" class="form-control" id="extraCost" value="0" oninput="calculate()" />
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Floor Number:</label>
+          <input type="number" class="form-control" id="floorNumber" value="3" oninput="calculate()" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Floor Rise:</label>
+          <input type="number" class="form-control" id="floorRise" value="0" oninput="calculate()" />
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <label class="form-label">Maintenance charge per sq ft:</label>
+          <input type="number" class="form-control" id="maintenanceCharge" value="4" oninput="calculate()" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Maintenance years:</label>
+          <input type="number" class="form-control" id="maintenanceYears" value="1" oninput="calculate()" />
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary mb-3" onclick="printTable()">Print Table</button>
+
+    <!-- Results Table -->
+    <table class="table table-bordered mt-4" id="resultTable">
+      <thead>
+        <tr>
+          <th colspan="2" class="text-center" id="projectTitle">Project Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>SBA Sq. ft</td><td id="tableSBA"></td></tr>
+        <tr><td>Rate per sq ft</td><td id="tableRate"></td></tr>
+        <tr><td>Basic Cost</td><td id="flatCost"></td></tr>
+        <tr><td>GST (5%)</td><td id="gst"></td></tr>
+        <tr><td><b>Total Cost</b></td><td id="totalCost" class="fw-bold"></td></tr>
+        <tr><td>Maintenance</td><td id="maintenance"></td></tr>
+        <tr><td>Floor Rise Charges</td><td id="floorRiseCharges"></td></tr>
+        <tr><td>Stamp Duty & Registration</td><td id="stampDutyCost"></td></tr>
+        <tr><td><b>Grand Total</b></td><td id="actualCost" class="fw-bold"></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script src="./calculator.js" type="text/javascript"></script>
+</body>
+</html>
