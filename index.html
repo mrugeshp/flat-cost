@@ -133,6 +133,37 @@
           <td class="text-primary"><b>Bank Down Payment</b></td>
           <td id="downPayment" class="fw-bold text-primary"></td>
         </tr>
+        <tr>
+          <td><b>Own Cotribution</b></td>
+          <td id="ownContribution" class="fw-bold"></td>
+        </tr>
+        <tr class="table-secondary">
+          <td colspan="2" class="text-center fw-bold">Loan Details</td>
+        </tr>
+        <tr>
+          <td>Interest Rate (per annum)</td>
+          <td><input type="number" id="loanInterest" class="form-control" value="8.65" oninput="calculate()" /></td>
+        </tr>
+        <tr>
+          <td>Loan Tenure (Years)</td>
+          <td><input type="number" id="loanTenure" class="form-control" value="20" oninput="calculate()" /></td>
+        </tr>
+        <tr>
+          <td class="text-primary">Loan Amount (80% of Grand Total)</td>
+          <td id="loanAmount" class="text-primary fw-semibold"></td>
+        </tr>
+        <tr>
+          <td class="text-warning">EMI (Monthly)</td>
+          <td id="emi" class="text-warning"></td>
+        </tr>
+        <tr>
+          <td class="text-danger">Total Interest Payable</td>
+          <td id="totalInterest" class="text-danger"></td>
+        </tr>
+        <tr>
+          <td class="text-success">Total Payment (Principal + Interest)</td>
+          <td id="totalPayment" class="text-success"></td>
+        </tr>
       </tbody>      
     </table>
   </div>

@@ -39,7 +39,8 @@ function calculate() {
   const stampDutyCost = (STAMP_DUTY / 100) * totalCost + REGISTRATION;
   const maintenance = sba * maintenanceCharge * maintenanceYears * MONTHS_IN_YEAR;
   const actualCost = totalCost + stampDutyCost + maintenance + floorRiseCharges + extraCost + legalCharges;
-  const downPayment = (20 / 100) * actualCost;
+  const downPayment = (20 / 100) * totalCost;
+  const ownContribution = stampDutyCost + maintenance + floorRiseCharges + extraCost + legalCharges;
 
   document.getElementById("tableSBA").innerText = Math.round(sba).toLocaleString("en-IN");
   document.getElementById("tableRate").innerText = Math.round(rate).toLocaleString("en-IN");
@@ -51,6 +52,27 @@ function calculate() {
   document.getElementById("stampDutyCost").innerText = Math.round(stampDutyCost).toLocaleString("en-IN");
   document.getElementById("actualCost").innerText = Math.round(actualCost).toLocaleString("en-IN");
   document.getElementById("downPayment").innerText = Math.round(downPayment).toLocaleString("en-IN");
+  document.getElementById("ownContribution").innerText = Math.round(ownContribution).toLocaleString("en-IN");
+
+  // Loan calculation
+  const loanInterest = parseFloat(document.getElementById("loanInterest").value) || 8.65;
+  const loanTenure = parseFloat(document.getElementById("loanTenure").value) || 20;
+  const loanAmount = (80 / 100) * totalCost;
+
+  const monthlyInterestRate = loanInterest / 100 / MONTHS_IN_YEAR;
+  const numberOfPayments = loanTenure * MONTHS_IN_YEAR;
+
+  const emi = loanAmount * monthlyInterestRate * Math.pow(1 + monthlyInterestRate, numberOfPayments) /
+              (Math.pow(1 + monthlyInterestRate, numberOfPayments) - 1);
+
+  const totalPayment = emi * numberOfPayments;
+  const totalInterest = totalPayment - loanAmount;
+
+  document.getElementById("loanAmount").innerText = Math.round(loanAmount).toLocaleString("en-IN");
+  document.getElementById("emi").innerText = Math.round(emi).toLocaleString("en-IN");
+  document.getElementById("totalInterest").innerText = Math.round(totalInterest).toLocaleString("en-IN");
+  document.getElementById("totalPayment").innerText = Math.round(totalPayment).toLocaleString("en-IN");
+
 }
 
 function printTable() {
