@@ -73,6 +73,18 @@ function calculate() {
   document.getElementById("totalInterest").innerText = Math.round(totalInterest).toLocaleString("en-IN");
   document.getElementById("totalPayment").innerText = Math.round(totalPayment).toLocaleString("en-IN");
 
+  // Tax Benefit Calculation
+  const annualPrincipal = Math.min(loanAmount / loanTenure, 150000); // Max 1.5L under 80C
+  const annualInterest = Math.min(totalInterest / loanTenure, 200000); // Max 2L under 24b
+
+  const annualTaxSaving = annualPrincipal + annualInterest;
+  const totalTaxSaving = annualTaxSaving * loanTenure;
+
+  document.getElementById("taxPrincipal").innerText = Math.round(annualPrincipal).toLocaleString("en-IN");
+  document.getElementById("taxInterest").innerText = Math.round(annualInterest).toLocaleString("en-IN");
+  document.getElementById("annualTaxSaving").innerText = Math.round(annualTaxSaving).toLocaleString("en-IN");
+  document.getElementById("totalTaxSaving").innerText = Math.round(totalTaxSaving).toLocaleString("en-IN")
+
 }
 
 function printTable() {
