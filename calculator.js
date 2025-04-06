@@ -78,13 +78,14 @@ function calculate() {
   const annualInterest = Math.min(totalInterest / loanTenure, 200000); // Max 2L under 24b
 
   const annualTaxSaving = annualPrincipal + annualInterest;
-  const totalTaxSaving = annualTaxSaving * loanTenure;
+  const totalTaxSaving = (annualTaxSaving * loanTenure) * 0.3; // 30% tax bracket
 
   document.getElementById("taxPrincipal").innerText = Math.round(annualPrincipal).toLocaleString("en-IN");
   document.getElementById("taxInterest").innerText = Math.round(annualInterest).toLocaleString("en-IN");
   document.getElementById("annualTaxSaving").innerText = Math.round(annualTaxSaving).toLocaleString("en-IN");
   document.getElementById("totalTaxSaving").innerText = Math.round(totalTaxSaving).toLocaleString("en-IN")
 
+  generateAmortizationSchedule(loanAmount, emi, monthlyInterestRate, numberOfPayments);
 }
 
 function printTable() {
@@ -96,6 +97,54 @@ function printTable() {
   newWin.document.close();
   newWin.print();
 }
+
+function generateAmortizationSchedule(principal, emi, rate, months) {
+  const tableBody = document.querySelector("#amortizationTable tbody");
+  tableBody.innerHTML = "";
+
+  let currentBalance = principal;
+  let currentDate = new Date();
+  
+  // Accumulators for financial year (April to March)
+  let yearTotalPrincipal = 0;
+  let yearTotalInterest = 0;
+
+  for (let i = 0; i < months; i++) {
+    const interestPayment = currentBalance * rate;
+    const principalPayment = emi - interestPayment;
+    currentBalance -= principalPayment;
+    
+    // Accumulate monthly values
+    yearTotalPrincipal += principalPayment;
+    yearTotalInterest += interestPayment;
+    
+    // Format month as "Mon-YY" (e.g., Apr-25)
+    const monthStr = currentDate.toLocaleString('default', { month: 'short', year: '2-digit' });
+    
+    // Determine if this month is March (end of financial year) or the final payment\n
+    let yearlyTotalsCell = "";
+    if (currentDate.getMonth() === 2 || i === months - 1) { // March is month index 2\n
+      yearlyTotalsCell = Math.round(yearTotalPrincipal).toLocaleString('en-IN') + " / " +
+                           Math.round(yearTotalInterest).toLocaleString('en-IN');
+      // Reset the accumulators for the next financial year\n
+      yearTotalPrincipal = 0;
+      yearTotalInterest = 0;
+    }
+    
+    const row = `<tr>
+      <td>${monthStr}</td>
+      <td>${Math.round(principalPayment).toLocaleString('en-IN')}</td>
+      <td>${Math.round(interestPayment).toLocaleString('en-IN')}</td>
+      <td>${Math.round(currentBalance > 0 ? currentBalance : 0).toLocaleString('en-IN')}</td>
+      <td>${yearlyTotalsCell}</td>
+    </tr>`;
+    tableBody.insertAdjacentHTML('beforeend', row);
+
+    // Move to the next month
+    currentDate.setMonth(currentDate.getMonth() + 1);
+  }
+}
+
 
 // Run initial calculation on page load
 window.onload = calculate;
