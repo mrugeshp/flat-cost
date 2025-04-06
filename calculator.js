@@ -121,6 +121,12 @@ function generateAmortizationSchedule(principal, emi, rate, months) {
     
     const interestPayment = currentBalance * rate;
     const principalPayment = emi - interestPayment;
+
+    // If principal payment is 0 and interest becomes negative, stop generating further rows.
+    if (principalPayment <= 0 && interestPayment < 0) {
+      break;
+    }
+
     currentBalance -= principalPayment;
     // Adjust the balance based on surplus deposit/withdrawal
     currentBalance -= surplusDeposit;
