@@ -83,7 +83,13 @@ function calculate() {
   document.getElementById("taxPrincipal").innerText = Math.round(annualPrincipal).toLocaleString("en-IN");
   document.getElementById("taxInterest").innerText = Math.round(annualInterest).toLocaleString("en-IN");
   document.getElementById("annualTaxSaving").innerText = Math.round(annualTaxSaving).toLocaleString("en-IN");
-  document.getElementById("totalTaxSaving").innerText = Math.round(totalTaxSaving).toLocaleString("en-IN")
+  document.getElementById("totalTaxSaving").innerText = Math.round(totalTaxSaving).toLocaleString("en-IN");
+
+  // Store these values globally for surplus recalculation
+  window._loanAmount = loanAmount;
+  window._emi = emi;
+  window._monthlyInterestRate = monthlyInterestRate;
+  window._numberOfPayments = numberOfPayments;
 
   generateAmortizationSchedule(loanAmount, emi, monthlyInterestRate, numberOfPayments);
 }
@@ -101,49 +107,72 @@ function printTable() {
 function generateAmortizationSchedule(principal, emi, rate, months) {
   const tableBody = document.querySelector("#amortizationTable tbody");
   tableBody.innerHTML = "";
-
   let currentBalance = principal;
   let currentDate = new Date();
-  
-  // Accumulators for financial year (April to March)
   let yearTotalPrincipal = 0;
   let yearTotalInterest = 0;
-
+  
   for (let i = 0; i < months; i++) {
+    // --- New: Retrieve surplus value from a global object if available ---
+    let surplusDeposit = 0;
+    if (window.surplusValues && window.surplusValues[i] !== undefined) {
+      surplusDeposit = parseFloat(window.surplusValues[i]) || 0;
+    }
+    
     const interestPayment = currentBalance * rate;
     const principalPayment = emi - interestPayment;
     currentBalance -= principalPayment;
+    // Adjust the balance based on surplus deposit/withdrawal
+    currentBalance -= surplusDeposit;
     
-    // Accumulate monthly values
     yearTotalPrincipal += principalPayment;
     yearTotalInterest += interestPayment;
     
-    // Format month as "Mon-YY" (e.g., Apr-25)
     const monthStr = currentDate.toLocaleString('default', { month: 'short', year: '2-digit' });
     
-    // Determine if this month is March (end of financial year) or the final payment\n
     let yearlyTotalsCell = "";
-    if (currentDate.getMonth() === 2 || i === months - 1) { // March is month index 2\n
+    if (currentDate.getMonth() === 2 || i === months - 1) { // Financial year ends in March (month index 2)
       yearlyTotalsCell = Math.round(yearTotalPrincipal).toLocaleString('en-IN') + " / " +
-                           Math.round(yearTotalInterest).toLocaleString('en-IN');
-      // Reset the accumulators for the next financial year\n
+                         Math.round(yearTotalInterest).toLocaleString('en-IN');
       yearTotalPrincipal = 0;
       yearTotalInterest = 0;
+    } else {
+      yearlyTotalsCell = Math.round(yearTotalPrincipal).toLocaleString('en-IN') + " / " +
+                         Math.round(yearTotalInterest).toLocaleString('en-IN');
     }
     
-    const row = `<tr>
+    // Use stored surplus value or default to 0 in the input field
+    const surplusValue = (window.surplusValues && window.surplusValues[i] !== undefined)
+                          ? window.surplusValues[i] : 0;
+
+    // Highlight the row if it's March (month index 2) using Bootstrap's table-info class
+    const rowClass = (currentDate.getMonth() === 2) ? "table-info" : "";
+    
+    const row = `<tr class="${rowClass}">
       <td>${monthStr}</td>
       <td>${Math.round(principalPayment).toLocaleString('en-IN')}</td>
       <td>${Math.round(interestPayment).toLocaleString('en-IN')}</td>
       <td>${Math.round(currentBalance > 0 ? currentBalance : 0).toLocaleString('en-IN')}</td>
       <td>${yearlyTotalsCell}</td>
+      <td><input type="number" id="surplus_${i}" value="${surplusValue}" class="form-control form-control-sm" style="width:100px;" onchange="recalculateAmortization()" /></td>
     </tr>`;
+    
     tableBody.insertAdjacentHTML('beforeend', row);
-
-    // Move to the next month
     currentDate.setMonth(currentDate.getMonth() + 1);
   }
 }
+
+function recalculateAmortization() {
+  // Save existing surplus values
+  window.surplusValues = {};
+  document.querySelectorAll('[id^="surplus_"]').forEach(input => {
+    const idx = input.id.split('_')[1];
+    window.surplusValues[idx] = input.value;
+  });
+  generateAmortizationSchedule(window._loanAmount, window._emi, window._monthlyInterestRate, window._numberOfPayments);
+}
+
+
 
 
 // Run initial calculation on page load
