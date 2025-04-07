@@ -91,7 +91,21 @@ function calculate() {
   window._monthlyInterestRate = monthlyInterestRate;
   window._numberOfPayments = numberOfPayments;
 
-  generateAmortizationSchedule(loanAmount, emi, monthlyInterestRate, numberOfPayments);
+  const scheduleSummary = generateAmortizationSchedule(loanAmount, emi, monthlyInterestRate);
+
+  const originalTenureMonths = loanTenure * 12;
+  const revisedTenureMonths = scheduleSummary.revisedTenureMonths;
+  const tenureReduction = originalTenureMonths - revisedTenureMonths;
+  const totalSurplusPaid = scheduleSummary.surplusTotal;
+  const interestSaved = totalInterest - scheduleSummary.revisedInterest;
+  
+  // Update Summary Section
+  document.getElementById("originalTenure").innerText = `${originalTenureMonths} months (${(originalTenureMonths / 12).toFixed(1)} years)`;
+  document.getElementById("revisedTenure").innerText = `${revisedTenureMonths} months (${(revisedTenureMonths / 12).toFixed(1)} years)`;
+  document.getElementById("tenureReduction").innerText = `${tenureReduction} months (${(tenureReduction / 12).toFixed(1)} years)`;
+  document.getElementById("totalSurplusPaid").innerText = `₹ ${totalSurplusPaid.toLocaleString()}`;
+  document.getElementById("interestSaved").innerText = `₹ ${interestSaved.toLocaleString()}`;
+
 }
 
 function printTable() {
@@ -104,79 +118,90 @@ function printTable() {
   newWin.print();
 }
 
-function generateAmortizationSchedule(principal, emi, rate, months) {
+function generateAmortizationSchedule(principal, emi, rate) {
   const tableBody = document.querySelector("#amortizationTable tbody");
   tableBody.innerHTML = "";
+
   let currentBalance = principal;
   let currentDate = new Date();
   let yearTotalPrincipal = 0;
   let yearTotalInterest = 0;
-  
-  for (let i = 0; i < months; i++) {
-    // --- New: Retrieve surplus value from a global object if available ---
-    let surplusDeposit = 0;
-    if (window.surplusValues && window.surplusValues[i] !== undefined) {
-      surplusDeposit = parseFloat(window.surplusValues[i]) || 0;
-    }
-    
-    const interestPayment = currentBalance * rate;
-    const principalPayment = emi - interestPayment;
 
-    // If principal payment is 0 and interest becomes negative, stop generating further rows.
-    if (principalPayment <= 0 && interestPayment < 0) {
+  let revisedTenureMonths = 0;
+  let revisedInterest = 0;
+  let surplusTotal = 0;
+
+  window.surplusValues = window.surplusValues || {};
+
+  while (currentBalance > 0) {
+    let surplusDeposit = parseFloat(window.surplusValues[revisedTenureMonths] || 0);
+
+    const interestPayment = currentBalance * rate;
+    let principalPayment = emi - interestPayment;
+
+    if (principalPayment + surplusDeposit > currentBalance) {
+      principalPayment = currentBalance - surplusDeposit;
+    }
+
+    if (interestPayment < 0 || principalPayment < 0) {
       break;
     }
 
-    currentBalance -= principalPayment;
-    // Adjust the balance based on surplus deposit/withdrawal
-    currentBalance -= surplusDeposit;
-    
+    currentBalance -= (principalPayment + surplusDeposit);
     yearTotalPrincipal += principalPayment;
     yearTotalInterest += interestPayment;
-    
-    const monthStr = currentDate.toLocaleString('default', { month: 'short', year: '2-digit' });
-    
-    let yearlyTotalsCell = "";
-    if (currentDate.getMonth() === 2 || i === months - 1) { // Financial year ends in March (month index 2)
-      yearlyTotalsCell = Math.round(yearTotalPrincipal).toLocaleString('en-IN') + " / " +
-                         Math.round(yearTotalInterest).toLocaleString('en-IN');
-      yearTotalPrincipal = 0;
-      yearTotalInterest = 0;
-    } else {
-      yearlyTotalsCell = Math.round(yearTotalPrincipal).toLocaleString('en-IN') + " / " +
-                         Math.round(yearTotalInterest).toLocaleString('en-IN');
-    }
-    
-    // Use stored surplus value or default to 0 in the input field
-    const surplusValue = (window.surplusValues && window.surplusValues[i] !== undefined)
-                          ? window.surplusValues[i] : 0;
+    revisedInterest += interestPayment;
+    surplusTotal += surplusDeposit;
 
-    // Highlight the row if it's March (month index 2) using Bootstrap's table-info class
+    const monthStr = currentDate.toLocaleString('default', { month: 'short', year: '2-digit' });
+    const yearlyTotalsCell = `${Math.round(yearTotalPrincipal).toLocaleString('en-IN')} / ${Math.round(yearTotalInterest).toLocaleString('en-IN')}`;
+    const surplusValue = surplusDeposit;
+
     const rowClass = (currentDate.getMonth() === 2) ? "table-info" : "";
-    
     const row = `<tr class="${rowClass}">
       <td>${monthStr}</td>
       <td>${Math.round(principalPayment).toLocaleString('en-IN')}</td>
       <td>${Math.round(interestPayment).toLocaleString('en-IN')}</td>
       <td>${Math.round(currentBalance > 0 ? currentBalance : 0).toLocaleString('en-IN')}</td>
       <td>${yearlyTotalsCell}</td>
-      <td><input type="number" id="surplus_${i}" value="${surplusValue}" class="form-control form-control-sm" style="width:100px;" onchange="recalculateAmortization()" /></td>
+      <td><input type="number" id="surplus_${revisedTenureMonths}" value="${surplusValue}" class="form-control form-control-sm" style="width:100px;" onchange="recalculateAmortization()" /></td>
     </tr>`;
-    
+
     tableBody.insertAdjacentHTML('beforeend', row);
     currentDate.setMonth(currentDate.getMonth() + 1);
+    revisedTenureMonths++;
+    if (currentBalance <= 0) break;
   }
+
+  return {
+    revisedTenureMonths,
+    revisedInterest,
+    surplusTotal
+  };
 }
 
 function recalculateAmortization() {
-  // Save existing surplus values
   window.surplusValues = {};
   document.querySelectorAll('[id^="surplus_"]').forEach(input => {
     const idx = input.id.split('_')[1];
     window.surplusValues[idx] = input.value;
   });
-  generateAmortizationSchedule(window._loanAmount, window._emi, window._monthlyInterestRate, window._numberOfPayments);
+
+  const scheduleSummary = generateAmortizationSchedule(window._loanAmount, window._emi, window._monthlyInterestRate);
+
+  const originalTenureMonths = window._numberOfPayments;
+  const revisedTenureMonths = scheduleSummary.revisedTenureMonths;
+  const tenureReduction = originalTenureMonths - revisedTenureMonths;
+  const totalSurplusPaid = scheduleSummary.surplusTotal;
+  const interestSaved = (window._emi * window._numberOfPayments - window._loanAmount) - scheduleSummary.revisedInterest;
+
+  document.getElementById("originalTenure").innerText = `${originalTenureMonths} months (${(originalTenureMonths / 12).toFixed(1)} years)`;
+  document.getElementById("revisedTenure").innerText = `${revisedTenureMonths} months (${(revisedTenureMonths / 12).toFixed(1)} years)`;
+  document.getElementById("tenureReduction").innerText = `${tenureReduction} months (${(tenureReduction / 12).toFixed(1)} years)`;
+  document.getElementById("totalSurplusPaid").innerText = `₹ ${totalSurplusPaid.toLocaleString()}`;
+  document.getElementById("interestSaved").innerText = `₹ ${interestSaved.toLocaleString()}`;
 }
+
 
 
 
