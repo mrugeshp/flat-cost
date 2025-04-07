@@ -134,6 +134,10 @@
           <td id="downPayment" class="fw-bold text-primary"></td>
         </tr>
         <tr>
+          <td><b>Bank Loan Amount</b></td>
+          <td id="bankLoanAmount" class="fw-bold"></td>
+        </tr>
+        <tr>
           <td><b>Own Cotribution</b></td>
           <td id="ownContribution" class="fw-bold"></td>
         </tr>
@@ -149,8 +153,10 @@
           <td><input type="number" id="loanTenure" class="form-control" value="20" oninput="calculate()" /></td>
         </tr>
         <tr>
-          <td class="text-primary">Loan Amount (80% of Grand Total)</td>
-          <td id="loanAmount" class="text-primary fw-semibold"></td>
+          <td class="text-primary">Loan Amount (80% of Total cost)</td>
+          <td>
+            <input type="number" id="loanAmount" class="form-control" value="0" oninput="updateLoanAmount()" />
+          </td>
         </tr>
         <tr>
           <td class="text-warning">EMI (Monthly)</td>

@@ -42,6 +42,11 @@ function calculate() {
   const downPayment = (20 / 100) * totalCost;
   const ownContribution = stampDutyCost + maintenance + floorRiseCharges + extraCost + legalCharges;
 
+  // Calculate loan amount (default 80% of total cost)
+  const defaultLoanAmount = (80 / 100) * totalCost;
+  const loanAmountInput = document.getElementById("loanAmount");
+  let loanAmount = parseFloat(loanAmountInput.value.replace(/,/g, "")) || defaultLoanAmount;
+
   document.getElementById("tableSBA").innerText = Math.round(sba).toLocaleString("en-IN");
   document.getElementById("tableRate").innerText = Math.round(rate).toLocaleString("en-IN");
   document.getElementById("flatCost").innerText = Math.round(flatCost).toLocaleString("en-IN");
@@ -53,12 +58,17 @@ function calculate() {
   document.getElementById("actualCost").innerText = Math.round(actualCost).toLocaleString("en-IN");
   document.getElementById("downPayment").innerText = Math.round(downPayment).toLocaleString("en-IN");
   document.getElementById("ownContribution").innerText = Math.round(ownContribution).toLocaleString("en-IN");
+  document.getElementById("bankLoanAmount").innerText = Math.round(defaultLoanAmount).toLocaleString("en-IN");
 
-  // Loan calculation
+  // Update loan amount field if it's not manually edited
+  if (!loanAmountInput.dataset.userEdited) {
+    loanAmountInput.value = Math.round(defaultLoanAmount); // Set raw value (no commas)
+    loanAmountInput.dataset.userEdited = false; // Reset user edit flag
+  }
+
+  // Loan calculations
   const loanInterest = parseFloat(document.getElementById("loanInterest").value) || 8.65;
   const loanTenure = parseFloat(document.getElementById("loanTenure").value) || 20;
-  const loanAmount = (80 / 100) * totalCost;
-
   const monthlyInterestRate = loanInterest / 100 / MONTHS_IN_YEAR;
   const numberOfPayments = loanTenure * MONTHS_IN_YEAR;
 
@@ -68,7 +78,6 @@ function calculate() {
   const totalPayment = emi * numberOfPayments;
   const totalInterest = totalPayment - loanAmount;
 
-  document.getElementById("loanAmount").innerText = Math.round(loanAmount).toLocaleString("en-IN");
   document.getElementById("emi").innerText = Math.round(emi).toLocaleString("en-IN");
   document.getElementById("totalInterest").innerText = Math.round(totalInterest).toLocaleString("en-IN");
   document.getElementById("totalPayment").innerText = Math.round(totalPayment).toLocaleString("en-IN");
@@ -98,14 +107,19 @@ function calculate() {
   const tenureReduction = originalTenureMonths - revisedTenureMonths;
   const totalSurplusPaid = scheduleSummary.surplusTotal;
   const interestSaved = totalInterest - scheduleSummary.revisedInterest;
-  
+
   // Update Summary Section
   document.getElementById("originalTenure").innerText = `${originalTenureMonths} months (${(originalTenureMonths / 12).toFixed(1)} years)`;
   document.getElementById("revisedTenure").innerText = `${revisedTenureMonths} months (${(revisedTenureMonths / 12).toFixed(1)} years)`;
   document.getElementById("tenureReduction").innerText = `${tenureReduction} months (${(tenureReduction / 12).toFixed(1)} years)`;
-  document.getElementById("totalSurplusPaid").innerText = `₹ ${totalSurplusPaid.toLocaleString()}`;
-  document.getElementById("interestSaved").innerText = `₹ ${interestSaved.toLocaleString()}`;
+  document.getElementById("totalSurplusPaid").innerText = `₹ ${totalSurplusPaid.toLocaleString('en-IN')}`;
+  document.getElementById("interestSaved").innerText = `₹ ${Math.round(interestSaved).toLocaleString('en-IN')}`;
+}
 
+function updateLoanAmount() {
+  const loanAmountInput = document.getElementById("loanAmount");
+  loanAmountInput.dataset.userEdited = true; // Mark as manually edited
+  calculate(); // Recalculate loan details and amortization schedule
 }
 
 function printTable() {
@@ -198,13 +212,9 @@ function recalculateAmortization() {
   document.getElementById("originalTenure").innerText = `${originalTenureMonths} months (${(originalTenureMonths / 12).toFixed(1)} years)`;
   document.getElementById("revisedTenure").innerText = `${revisedTenureMonths} months (${(revisedTenureMonths / 12).toFixed(1)} years)`;
   document.getElementById("tenureReduction").innerText = `${tenureReduction} months (${(tenureReduction / 12).toFixed(1)} years)`;
-  document.getElementById("totalSurplusPaid").innerText = `₹ ${totalSurplusPaid.toLocaleString()}`;
-  document.getElementById("interestSaved").innerText = `₹ ${interestSaved.toLocaleString()}`;
+  document.getElementById("totalSurplusPaid").innerText = `₹ ${totalSurplusPaid.toLocaleString('en-IN')}`;
+  document.getElementById("interestSaved").innerText = `₹ ${Math.round(interestSaved).toLocaleString('en-IN')}`;
 }
-
-
-
-
 
 // Run initial calculation on page load
 window.onload = calculate;
